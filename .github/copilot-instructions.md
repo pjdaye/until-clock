@@ -40,7 +40,8 @@ src/UntilClock/
   MainWindow.xaml – Single window; DataContext wired in code-behind
 
 tests/UntilClock.Tests/
-  CountdownTargetTests.cs  – xUnit tests targeting Models only
+  *Tests.cs         – xUnit test suites covering Models, ViewModels, persistence, and app startup
+                    (for example, CountdownTargetTests, MainViewModelStartupTests, PersistenceTests)
 ```
 
 **Data flow:** `MinuteBoundaryTimerService` fires a `Tick` event aligned to minute boundaries on the UI thread → `MainViewModel.Refresh()` recomputes `Remaining` and `DisplayText` → WPF bindings update the view.
