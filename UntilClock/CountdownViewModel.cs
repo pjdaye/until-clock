@@ -102,7 +102,7 @@ namespace UntilClock
             var now = DateTime.Now;
             var remaining = _targetTime - now;
 
-            TargetDisplay = $"Until: {_targetTime:ddd, MMM d, yyyy  h:mm tt}";
+            TargetDisplay = $"Until: {_targetTime:ddd, MMM d, yyyy h:mm tt}";
 
             if (remaining <= TimeSpan.Zero)
             {

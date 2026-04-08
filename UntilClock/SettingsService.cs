@@ -34,9 +34,9 @@ namespace UntilClock
                         return settings.TargetTime.Value;
                 }
             }
-            catch
+            catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
             {
-                // Fall through to the default value if any I/O or deserialization error occurs.
+                // Settings file is missing or malformed — fall through to the default value.
             }
 
             // Default: 5:00 PM today
@@ -53,7 +53,7 @@ namespace UntilClock
                 var json = JsonSerializer.Serialize(settings, JsonOptions);
                 File.WriteAllText(SettingsFilePath, json);
             }
-            catch
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 // Silently ignore save failures — the countdown still works in-session.
             }
