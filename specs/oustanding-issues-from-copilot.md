@@ -1,0 +1,18 @@
+# Open Issues for future consideration
+
+* src/UntilClock/Services/MinuteBoundaryTimerService.cs
+  * lines 43-54: MinuteBoundaryTimerService switches to a fixed 60s interval after the first tick. If DispatcherTimer fires late (UI thread busy / sleep resume), subsequent ticks will remain offset and the service will no longer be aligned to real minute boundaries. Consider recalculating the next interval from the current clock time on every tick (or scheduling the next tick for the next :00 boundary) to self-correct drift.
+  * lines 23-35: Interval is advertised as a constant 60 seconds, but the first tick uses GetInitialInterval() which can be 1–60 seconds. If any consumer relies on Interval, this is misleading. Either expose the current DispatcherTimer.Interval, or document/rename the property semantics (e.g., SteadyStateInterval) and adjust the interface/usage accordingly.
+  * lines 56-62: There are no unit tests exercising MinuteBoundaryTimerService itself (current tests only validate standalone alignment math). Since this service is timing-critical, consider extracting the boundary-alignment calculation into a testable method (internal static) and adding coverage for boundary cases + drift correction behavior.
+* src/UntilClock/MainWindow.xaml
+  * lines 88-157: Completion state updates text and background, but the circular progress rings keep the same RingColor/TrackColor. This prevents the intended "color inversion" completion state (rings should switch to the completion foreground color as well). Consider binding RingColor/TrackColor to resources and adding an IsComplete trigger to swap them when complete.
+  * lines 13-15: Design-time DataContext instantiates MainViewModel via vm:MainViewModel/, but MainViewModel no longer has a parameterless constructor. This can break the XAML designer (and sometimes build-time validation). Consider removing this block or switching to a DesignInstance with IsDesignTimeCreatable=False / a dedicated design-time ViewModel.
+* src/UntilClock/Services/JsonPersistenceService.cs
+  * lines 24-34: JsonPersistenceService assumes Path.GetDirectoryName(_filePath) is non-null. If a caller passes a filename without a directory (valid for the public string-path constructor), this will throw. Consider handling null/empty directory names (e.g., default to Environment.CurrentDirectory or require an absolute path via argument validation).
+* setup.ps1
+  * lines 11-22: setup.ps1 uses Invoke-Expression to run dotnet commands. Even with constant command strings, Invoke-Expression makes quoting brittle and is generally discouraged; prefer the call operator (&) with explicit arguments (or Start-Process) so failures/exit codes are more reliable and there’s no expression parsing involved.
+* Migrate the UI to WinUI 3.
+* src/UntilClock/ViewModels/MainViewModel.cs
+  * lines 17-64: IsFirstLaunch is derived from persistence, but there’s no first-launch behavior implemented (e.g., auto-opening the set-target dialog) and the ViewModel still initializes a default countdown immediately. If the intended UX is "show picker automatically" / "no countdown until selected" on first launch (per PRD), implement that flow here or adjust the PRD to match the current behavior.
+* src/UntilClock/Controls/CircularProgressRing.cs
+  * lines 28-35: TrackColorProperty default value creates a mutable SolidColorBrush in dependency property metadata. Default DP values are shared across instances, so using an unfrozen Freezable here can lead to unintended shared-state or threading issues. Prefer a frozen static brush (created once and Freeze()’d) or a predefined brush resource.
