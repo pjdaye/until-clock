@@ -1,0 +1,309 @@
+# 📄 Until Clock — Engineering PRD (v1)
+
+## TL;DR
+
+A lightweight WinUI 3 desktop widget that displays a **single countdown** (days, hours, minutes) toward a target date/time. The app prioritizes **clarity, low resource usage, and a calm visual experience** with circular progress indicators and a strong visual completion state.
+
+---
+
+# 🧩 Scope Definition (v1 Lock)
+
+**In scope:**
+
+* Single countdown
+* Days / Hours / Minutes display
+* Circular progress visuals
+* Editable target date/time
+* Local persistence
+* Dark theme with blue accent
+* Completion state (color inversion)
+
+**Out of scope:**
+
+* Multiple countdowns
+* Notifications
+* Animations beyond subtle transitions
+* Cloud sync
+* Settings panel (beyond implicit interactions)
+
+---
+
+# 🧱 Functional Requirements + Acceptance Criteria
+
+---
+
+## 1. Countdown Initialization
+
+### Requirement
+
+The app must allow the user to create or set a countdown target date/time.
+
+### Acceptance Criteria
+
+* On first launch (no saved data):
+
+  * AC1: A date/time picker is automatically shown
+  * AC2: No countdown is displayed until a date is selected
+* On date selection:
+
+  * AC3: The selected date/time is saved locally
+  * AC4: `CountdownStartDateTime` is set to current system time
+  * AC5: Countdown begins immediately after confirmation
+* On subsequent launches:
+
+  * AC6: Previously saved countdown loads automatically
+  * AC7: Countdown displays without requiring user interaction
+
+---
+
+## 2. Countdown Display (Core UI)
+
+### Requirement
+
+Display remaining time as days, hours, and minutes.
+
+### Acceptance Criteria
+
+* AC1: Three units are displayed: Days, Hours, Minutes
+* AC2: Each unit shows a numeric value (integer)
+* AC3: Values update automatically every minute
+* AC4: Values never display negative numbers
+* AC5: When countdown reaches zero:
+
+  * All values display `0`
+  * Values remain static (no negative rollover)
+* AC6: Numbers are large and legible at standard desktop scaling (100–150%)
+
+---
+
+## 3. Countdown Calculation Logic
+
+### Requirement
+
+The system must correctly calculate remaining time and progress.
+
+### Acceptance Criteria
+
+* AC1: Remaining time is calculated as `TargetDateTime - Now`
+* AC2: If remaining time <= 0:
+
+  * Countdown is marked as complete
+* AC3: Days = `remaining.Days`
+* AC4: Hours = `remaining.Hours`
+* AC5: Minutes = `remaining.Minutes`
+* AC6: Calculations must be accurate within ±1 minute
+* AC7: Countdown updates align to real-world minute boundaries (e.g., changes at :00 seconds)
+
+---
+
+## 4. Circular Progress Indicators
+
+### Requirement
+
+Each time unit must have a circular progress visualization.
+
+### Acceptance Criteria
+
+* AC1: Three circular indicators are displayed (Days, Hours, Minutes)
+* AC2: Each circle visually represents progress (0.0–1.0 range)
+* AC3: Minutes circle:
+
+  * Represents progress within current hour (0–60 minutes)
+* AC4: Hours circle:
+
+  * Represents progress within current day (0–24 hours)
+* AC5: Days circle:
+
+  * Represents progress across total countdown duration
+  * Uses `CountdownStartDateTime` as baseline
+* AC6: Circles update at least once per minute
+* AC7: Visual depletion is smooth and consistent (no jumps or flicker)
+* AC8: Progress values are clamped between 0.0 and 1.0
+
+---
+
+## 5. Target Date Display & Editing
+
+### Requirement
+
+User must be able to view and edit the target date/time directly from the UI.
+
+### Acceptance Criteria
+
+* AC1: Target date/time is displayed beneath countdown
+* AC2: Display format is human-readable (e.g., “Apr 10, 2026 at 5:00 PM”)
+* AC3: Clicking the date/time opens a date/time picker
+* AC4: Picker is pre-populated with current target value
+* AC5: On confirm:
+
+  * Target date is updated
+  * `CountdownStartDateTime` resets to current time
+* AC6: On cancel:
+
+  * No changes are applied
+* AC7: UI updates immediately after confirmation
+
+---
+
+## 6. Persistence
+
+### Requirement
+
+Countdown data must persist across app sessions.
+
+### Acceptance Criteria
+
+* AC1: Countdown data is stored locally (JSON file)
+* AC2: Stored fields include:
+
+  * TargetDateTime
+  * CountdownStartDateTime
+* AC3: Data is saved immediately after:
+
+  * Creating a countdown
+  * Editing a countdown
+* AC4: On app launch:
+
+  * Data is loaded automatically
+* AC5: If no data exists:
+
+  * App behaves as first launch state
+* AC6: Corrupt or missing data does not crash the app
+
+  * App resets to first launch state
+
+---
+
+## 7. Timer / Update Mechanism
+
+### Requirement
+
+The UI must update in sync with real-world time.
+
+### Acceptance Criteria
+
+* AC1: Countdown updates occur once per minute
+* AC2: Updates are aligned to minute boundaries (e.g., 10:04:00)
+* AC3: No visible lag between real time and UI update
+* AC4: Timer does not drift over long sessions (>1 hour)
+* AC5: CPU usage remains minimal during idle state
+
+---
+
+## 8. Completion State
+
+### Requirement
+
+The app must clearly indicate when the countdown is complete.
+
+### Acceptance Criteria
+
+* AC1: Countdown is considered complete when `Now >= TargetDateTime`
+* AC2: UI enters completed state immediately upon completion
+* AC3: Completed state includes:
+
+  * Background color switches to blue (#007FFF)
+  * Text and circles switch to dark/black
+* AC4: Countdown values display `0`
+* AC5: Completed state persists across app restarts
+* AC6: Editing the date exits completed state immediately
+
+---
+
+## 9. Visual Design & Theming
+
+### Requirement
+
+The app must follow a consistent dark-themed visual design.
+
+### Acceptance Criteria
+
+* AC1: Background is dark (black or near-black)
+* AC2: Countdown numbers use accent color `#007FFF`
+* AC3: Circular indicators use same accent color
+* AC4: Secondary text (date/time) uses lower contrast styling
+* AC5: UI remains readable under:
+
+  * 100% scaling
+  * 125% scaling
+  * 150% scaling
+* AC6: No visual clipping or overlap occurs at standard window sizes
+
+---
+
+## 10. Layout & Responsiveness
+
+### Requirement
+
+The widget must maintain a clean horizontal layout.
+
+### Acceptance Criteria
+
+* AC1: Layout displays three units horizontally
+* AC2: Units are evenly spaced
+* AC3: Date/time label appears beneath units
+* AC4: Layout maintains alignment when values change (e.g., 9 → 10 days)
+* AC5: Window resizing (if supported):
+
+  * Does not break layout
+  * Maintains readability
+
+---
+
+## 11. Error Handling
+
+### Requirement
+
+The app must handle edge cases gracefully.
+
+### Acceptance Criteria
+
+* AC1: Selecting a past date:
+
+  * Immediately triggers completed state
+* AC2: Invalid date input is not possible via picker UI
+* AC3: Corrupt persistence file:
+
+  * App resets without crashing
+* AC4: System time changes:
+
+  * Countdown recalculates correctly on next tick
+
+---
+
+## 12. Performance
+
+### Requirement
+
+The app must be lightweight and efficient.
+
+### Acceptance Criteria
+
+* AC1: App launches in <1 second on standard hardware
+* AC2: Idle CPU usage is negligible (<1–2%)
+* AC3: Memory footprint remains low (<100MB target)
+* AC4: No UI stutter during updates
+* AC5: No unnecessary re-renders outside minute updates
+
+---
+
+# 🧪 Suggested Test Cases (High Value)
+
+Not exhaustive—but these catch real bugs:
+
+### Time Edge Cases
+
+* Countdown crossing midnight
+* Countdown across DST change
+* System clock manually changed forward/backward
+
+### Persistence
+
+* Kill app during save
+* Corrupt JSON manually → relaunch
+
+### UI
+
+* Large values (e.g., 999 days)
+* Small values (0 days, 0 hours, 1 minute)
+* Completion transition

@@ -6,6 +6,7 @@ namespace UntilClock.Services;
 /// <see cref="ITimerService"/> backed by a WPF <see cref="DispatcherTimer"/>
 /// so ticks arrive on the UI thread.
 /// </summary>
+[Obsolete("Use MinuteBoundaryTimerService for production. Kept for testing convenience.")]
 public sealed class DispatcherTimerService : ITimerService, IDisposable
 {
     private readonly DispatcherTimer _timer;

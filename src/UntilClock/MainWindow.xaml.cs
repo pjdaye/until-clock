@@ -12,6 +12,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainViewModel(new DispatcherTimerService(TimeSpan.FromSeconds(1)));
+        DataContext = new MainViewModel(
+            new MinuteBoundaryTimerService(new SystemClockService()),
+            new JsonPersistenceService(),
+            new WpfDialogService());
     }
 }
