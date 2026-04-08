@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Data;
+using UntilClock.Helpers;
 
 namespace UntilClock.Converters;
 
@@ -13,12 +14,10 @@ public sealed class TimeSpanToCountdownConverter : IValueConverter
     /// <inheritdoc />
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is not TimeSpan span || span <= TimeSpan.Zero)
+        if (value is not TimeSpan span)
             return "00:00:00";
 
-        return span.Days > 0
-            ? $"{span.Days}d {span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}"
-            : $"{span.Hours:D2}:{span.Minutes:D2}:{span.Seconds:D2}";
+        return CountdownFormatter.Format(span);
     }
 
     /// <inheritdoc />

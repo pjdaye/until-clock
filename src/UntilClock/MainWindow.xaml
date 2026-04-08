@@ -4,48 +4,213 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:UntilClock.ViewModels"
+        xmlns:ctrl="clr-namespace:UntilClock.Controls"
         mc:Ignorable="d"
-        Title="Until Clock" Height="300" Width="500"
-        ResizeMode="CanMinimize">
+        Title="Until Clock" Height="400" Width="540"
+        ResizeMode="CanMinimize"
+        WindowStyle="SingleBorderWindow">
 
     <d:Window.DataContext>
-        <vm:MainViewModel />
+        <vm:MainViewModel/>
     </d:Window.DataContext>
 
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <Style x:Key="UnitNumberStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="72"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
 
-        <!-- Event name -->
-        <TextBlock Grid.Row="0"
-                   Text="{Binding EventName}"
-                   FontSize="18"
-                   HorizontalAlignment="Center"
-                   Margin="0,0,0,12" />
+        <Style x:Key="UnitLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
 
-        <!-- Countdown display -->
-        <TextBlock Grid.Row="1"
-                   Text="{Binding DisplayText}"
-                   FontSize="56"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center" />
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="20,7"/>
+            <Setter Property="Margin" Value="6,0"/>
+            <Setter Property="Background" Value="#FF2A2A2A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF444444"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
 
-        <!-- Action buttons -->
-        <StackPanel Grid.Row="2"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    Margin="0,12,0,0">
-            <Button Content="Set Target"
-                    Command="{Binding SetTargetCommand}"
-                    Padding="16,6"
-                    Margin="0,0,8,0" />
-            <Button Content="Reset"
-                    Command="{Binding ResetCommand}"
-                    Padding="16,6" />
-        </StackPanel>
-    </Grid>
+    <!-- Root panel with completion-state trigger -->
+    <Border x:Name="RootBorder" Background="{StaticResource BackgroundBrush}">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource CompleteBackgroundBrush}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <Grid Margin="32,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Event name -->
+            <TextBlock Grid.Row="0"
+                       Text="{Binding EventName}"
+                       FontSize="16"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,16">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- Three countdown units -->
+            <UniformGrid Grid.Row="1" Columns="3" VerticalAlignment="Center">
+
+                <!-- Days -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ctrl:CircularProgressRing Value="{Binding DayProgress}"
+                                               RingRadius="44" Thickness="7"
+                                               RingColor="#FF007FFF"
+                                               TrackColor="#FF333333"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding RemainingDays}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource UnitNumberStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Text="DAYS">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource UnitLabelStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Hours -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ctrl:CircularProgressRing Value="{Binding HourProgress}"
+                                               RingRadius="44" Thickness="7"
+                                               RingColor="#FF007FFF"
+                                               TrackColor="#FF333333"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding RemainingHours}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource UnitNumberStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Text="HOURS">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource UnitLabelStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Minutes -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ctrl:CircularProgressRing Value="{Binding MinuteProgress}"
+                                               RingRadius="44" Thickness="7"
+                                               RingColor="#FF007FFF"
+                                               TrackColor="#FF333333"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding RemainingMinutes}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource UnitNumberStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Text="MINUTES">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource UnitLabelStyle}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+
+            </UniformGrid>
+
+            <!-- Target date display -->
+            <TextBlock Grid.Row="2"
+                       Text="{Binding TargetDisplayText}"
+                       HorizontalAlignment="Center"
+                       FontSize="13"
+                       Margin="0,16,0,0">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource CompleteForegroundBrush}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- Action buttons -->
+            <StackPanel Grid.Row="3"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="0,16,0,0">
+                <Button Content="Set Target"
+                        Command="{Binding SetTargetCommand}"
+                        Style="{StaticResource ActionButtonStyle}"/>
+                <Button Content="Reset"
+                        Command="{Binding ResetCommand}"
+                        Style="{StaticResource ActionButtonStyle}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

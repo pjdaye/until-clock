@@ -17,6 +17,9 @@ dotnet test UntilClock.slnx --filter "FullyQualifiedName~Remaining_ReturnsZero_W
 
 # Launch the app
 dotnet run --project src/UntilClock/UntilClock.csproj
+
+# Run tests with coverage gate (fails if line coverage < 80%)
+dotnet test UntilClock.slnx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=80 /p:ThresholdType=line /p:ThresholdStat=total
 ```
 
 Both projects target `net10.0-windows`. `EnableWindowsTargeting` is set so the solution can be restored on non-Windows machines, but the app and tests must run on Windows.
@@ -29,17 +32,20 @@ Both projects target `net10.0-windows`. `EnableWindowsTargeting` is set so the s
 src/UntilClock/
   Models/         – Plain C# data models (no WPF dependencies)
   ViewModels/     – MVVM layer; inherits ViewModelBase
-  Services/       – Timer abstraction (ITimerService / DispatcherTimerService)
+  Services/       – ITimerService / MinuteBoundaryTimerService (production); IClockService / SystemClockService;
+                    IPersistenceService / JsonPersistenceService; IDialogService / WpfDialogService
   Converters/     – IValueConverter implementations for XAML bindings
+  Controls/       – Custom WPF controls (e.g. CircularProgressRing)
+  Helpers/        – Shared static utilities (e.g. CountdownFormatter)
   MainWindow.xaml – Single window; DataContext wired in code-behind
 
 tests/UntilClock.Tests/
   CountdownTargetTests.cs  – xUnit tests targeting Models only
 ```
 
-**Data flow:** `DispatcherTimerService` fires a `Tick` event every second on the UI thread → `MainViewModel.Refresh()` recomputes `Remaining` and `DisplayText` → WPF bindings update the view.
+**Data flow:** `MinuteBoundaryTimerService` fires a `Tick` event aligned to minute boundaries on the UI thread → `MainViewModel.Refresh()` recomputes `Remaining` and `DisplayText` → WPF bindings update the view.
 
-`MainWindow` manually constructs `MainViewModel` and passes a `DispatcherTimerService` to it — there is no DI container.
+`MainWindow` manually constructs `MainViewModel` and passes service implementations to it — there is no DI container.
 
 ## Key Conventions
 
@@ -47,6 +53,6 @@ tests/UntilClock.Tests/
 - **`RelayCommand`** is the only `ICommand` implementation. Its `CanExecuteChanged` hooks into `CommandManager.RequerySuggested`.
 - **`ITimerService`** exists to decouple ViewModels from WPF's `DispatcherTimer`. Tests should inject a fake/stub implementation rather than using `DispatcherTimerService` directly.
 - **Models are WPF-free.** `CountdownTarget` lives in `UntilClock.Models` with no UI dependencies — keep it that way so it stays unit-testable without a WPF runtime.
-- **Countdown format:** `"Xd HH:mm:ss"` when days > 0, otherwise `"HH:mm:ss"`. This logic lives in both `MainViewModel.FormatRemaining` and `TimeSpanToCountdownConverter` — keep them in sync.
+- **Countdown format:** `"Xd HH:mm:ss"` when days > 0, otherwise `"HH:mm:ss"`. `CountdownFormatter.Format` (in `UntilClock.Helpers`) is the single source of truth — both `MainViewModel` and `TimeSpanToCountdownConverter` delegate to it.
 - **XML doc comments** are present on all public members. Continue this practice.
 - **Nullable reference types** (`<Nullable>enable</Nullable>`) and **implicit usings** are enabled project-wide.
